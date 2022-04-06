@@ -8,7 +8,7 @@ let deltaTime;
 
 let asteroids = [];
 let collissionManager = new CollisionManager();
-for (let i = 0; i < 2; i++) {
+for (let i = 0; i < 20; i++) {
     asteroids.push(new Asteroid(i, new Vector(Math.random() * canvas.width, Math.random() * canvas.height), (Math.random() * 80) + 20));
     // asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), 100));
     asteroids[i].calcAsteroidPoints(12, 10);
@@ -115,15 +115,15 @@ function Asteroid(id, position, radius) {
 
             context.beginPath();
             context.fillStyle = `rgb(${this.color.r},${this.color.g},${this.color.b})`;
-            let points = this.verticies;
-            // console.log(points);
-            context.moveTo(this.position.x, this.position.y)
-            points.forEach(function (point) {
-                context.lineTo(point.x, point.y);
-            })
-            context.lineTo(points[0].x, points[0].y);
-            context.fill()
-            context.closePath();
+            // let points = this.verticies;
+            
+            // context.moveTo(this.position.x, this.position.y)
+            // points.forEach(function (point) {
+            //     context.lineTo(point.x, point.y);
+            // })
+            // context.lineTo(points[0].x, points[0].y);
+            // context.fill()
+            // context.closePath();
 
             context.beginPath();
             context.strokeStyle = 'red';
@@ -221,5 +221,12 @@ CollisionManager.prototype.checkCollision = function (deltaTime) {
     }
     
     checkInBounds();
-    resolve(testObj, testObj2);
+   for(let currentObj = 0; currentObj < this.collideableObjects.length; currentObj++) {
+        for(let target = 0; target < this.collideableObjects.length; target++) {
+            if(this.collideableObjects[currentObj].id != this.collideableObjects[target].id) {
+                resolve(this.collideableObjects[currentObj], this.collideableObjects[target]);
+            }
+        } 
+   }
+    
 }
