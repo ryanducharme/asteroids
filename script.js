@@ -1,17 +1,19 @@
 canvas = document.querySelector('canvas');
 context = canvas.getContext('2d');
 let secondsPassed;
-let oldTimeStamp;
+let oldTimeStamp = 0;
 let fps;
+let deltaTime;
 
 
 // let player = new Sprite(new Position(300, 300))
-// let asteroid = new Asteroid(new Position(300, 300));
-
+// let asteroid = new Asteroid(new Position(200, 300));
+// asteroid.calcAsteroidPoints(12,10)
 let asteroids = [];
-
+// asteroids.push(asteroid);
 for(let i = 0; i < 7; i++) {
-    asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500)));
+    // asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), (Math.random() * 80) + 20));
+    asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), 100));
     asteroids[i].calcAsteroidPoints(12,10)
 }
 // console.log(asteroids);
@@ -20,17 +22,20 @@ window.requestAnimationFrame(gameLoop);
 function gameLoop(timeStamp) {
 
     // Calculate the number of seconds passed since the last frame
+    
+    deltaTime = (timeStamp - oldTimeStamp);
     secondsPassed = (timeStamp - oldTimeStamp) / 1000;
     oldTimeStamp = timeStamp;
 
-    update(secondsPassed);
+    update(deltaTime);
     draw();
 
     // The loop function has reached it's end. Keep requesting new frames
     window.requestAnimationFrame(gameLoop);
 }
 
-function update() {
+function update(deltaTime) {
+    
     asteroids.forEach(asteroid => asteroid.update());
     // console.log(asteroids[0].position);
 }
@@ -45,21 +50,21 @@ function draw() {
     context.font = '25px Arial';
     context.fillStyle = 'black';
     context.fillText("FPS: " + fps, 10, 30);
+    context.fillText("Delta: " + Math.round(deltaTime), 10, 50);
     
 
     asteroids.forEach(asteroid => asteroid.draw(context));
     
 }
 
-function Asteroid(position) {
-    
+function Asteroid(position, radius) {
     this.renderable = true;
     this.position = position;
     this.verticies = [];
-    this.radius = (Math.random() * 80) + 20;
+    this.radius = radius;
     
-    this.dx = 1 / this.radius * 100;
-    this.dy = 1 / this.radius * 100;
+    this.dx = 0.1 / this.radius * 100;
+    this.dy = 0.1 / this.radius * 100;
     this.calcAsteroidPoints = function (n, variance) {
         //plot a random point clockwise around a circle n times
         //small 1-10
@@ -77,16 +82,11 @@ function Asteroid(position) {
             let y = this.position.y + this.radius * Math.sin(2 * Math.PI * i / n) + realVariance;
             let newPos = new Position(x, y);
             this.verticies.push(newPos);
-            // console.log(verts);
         }
-        // console.log(verts);
-        // this.verticies = vert;
-        // verts.map(elem => this.verticies.push(elem));
     }
 
     this.update = function () {
-        this.checkCollision();   
-        // console.log(this.position);
+        this.checkCollision();
     }
 
     this.draw = function (context) {
@@ -109,20 +109,21 @@ function Asteroid(position) {
         let self = this;
         // console.log(this);
         //check border collision
-        if(this.position.x + this.dx > canvas.width || this.position.x + this.dx < 0) {
+        if(this.position.x + this.dx * deltaTime > canvas.width || this.position.x * deltaTime + this.dx < 0) {
             this.dx = -this.dx;
         }
        
-        if(this.position.y + this.dy > canvas.height || this.position.y + this.dy < 0) {
+        if(this.position.y + this.dy * deltaTime > canvas.height || this.position.y * deltaTime + this.dy < 0) {
             this.dy = -this.dy;
         }
 
-        this.position.x += this.dx;
-        this.position.y += this.dy;
+        this.position.x += this.dx * deltaTime;
+        this.position.y += this.dy * deltaTime;
+        // console.log(deltaTime);
         this.verticies.forEach(function(vert) {
             // console.log(this);
-            vert.x += self.dx;
-            vert.y += self.dy;
+            vert.x += self.dx * deltaTime;
+            vert.y += self.dy * deltaTime;
             // console.log(vert.x);
         });
         // console.log(this.position.x);
