@@ -7,11 +7,12 @@ let deltaTime;
 
 
 let asteroids = [];
-
+let collissionManager = new CollisionManager();
 for(let i = 0; i < 10; i++) {
-    asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), (Math.random() * 80) + 20));
+    asteroids.push(new Asteroid(new Position(Math.random() * canvas.width, Math.random() * canvas.height), (Math.random() * 80) + 20));
     // asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), 100));
     asteroids[i].calcAsteroidPoints(12,10)
+    collissionManager.collideableObjects.push(asteroids[i]);
 }
 
 window.requestAnimationFrame(gameLoop);
@@ -34,6 +35,7 @@ function gameLoop(timeStamp) {
 function update(deltaTime) {
     
     asteroids.forEach(asteroid => asteroid.update());
+
     // console.log(asteroids[0].position);
 }
 
@@ -41,17 +43,15 @@ function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     fps = Math.round(1 / secondsPassed);
 
+    asteroids.forEach(asteroid => asteroid.draw(context));
+
     // Draw number to the screen
     context.fillStyle = 'white';
     context.fillRect(0, 0, 200, 100);
     context.font = '25px Arial';
     context.fillStyle = 'black';
     context.fillText("FPS: " + fps, 10, 30);
-    context.fillText("Delta: " + Math.round(deltaTime), 10, 50);
-    
-
-    asteroids.forEach(asteroid => asteroid.draw(context));
-    
+    context.fillText("Delta: " + Math.round(deltaTime), 10, 50);    
 }
 
 function Asteroid(position, radius) {
@@ -65,8 +65,8 @@ function Asteroid(position, radius) {
         b: 0
     }
     // this.mass = this.radius * 100;
-    this.dx = 0.1 / this.radius * 100;
-    this.dy = 0.1 / this.radius * 100;
+    this.dx = 0.05 / this.radius * 100;
+    this.dy = 0.05 / this.radius * 100;
     this.calcAsteroidPoints = function (n, variance) {
         //plot a random point clockwise around a circle n times
         //small 1-10
@@ -113,6 +113,12 @@ function Asteroid(position, radius) {
             context.lineTo(points[0].x, points[0].y);
             context.fill()
             context.closePath();
+
+            context.beginPath();
+            context.strokeStyle = 'red';
+            context.arc(this.position.x, this.position.y, radius, 0 , Math.PI * 2);
+            context.stroke();
+            context.closePath();
            
             context.font = '20px Arial';
             context.fillStyle = 'green';
@@ -121,37 +127,37 @@ function Asteroid(position, radius) {
         }
     }
     
-    this.checkCollision = function() {
-        let self = this;
-        let randomVariance = 0;
-        let randomVarianceMax = 2;
-        // console.log(this);
-        //check border collision
-        if(this.position.x + this.dx * deltaTime > canvas.width || this.position.x * deltaTime + this.dx < 0) {
-            this.dx = -this.dx;
-            randomVariance = Math.random() * randomVarianceMax;
-            // console.log(randomVariance);
-        }
-       
-        if(this.position.y + this.dy * deltaTime > canvas.height || this.position.y * deltaTime + this.dy < 0) {
-            this.dy = -this.dy;
-            randomVariance = Math.random() * randomVarianceMax;
-            // console.log(randomVariance);
-        }
+    
+}
 
-        this.position.x += this.dx * deltaTime + randomVariance;
-        this.position.y += this.dy * deltaTime + randomVariance;
-        // console.log(deltaTime);
-        this.verticies.forEach(function(vert) {
-            // console.log(this);
-            vert.x += self.dx * deltaTime + randomVariance;
-            vert.y += self.dy * deltaTime + randomVariance;
-            // console.log(vert.x);
-        });
-        // console.log(this.position.x);
+Asteroid.prototype.checkCollision = function() {
+    let self = this;
+    let randomVariance = 0;
+    let randomVarianceMax = 0;
+    // console.log(this);
+    //check border collision
+    if(this.position.x + this.dx * deltaTime > canvas.width || this.position.x * deltaTime + this.dx < 0) {
+        this.dx = -this.dx;
+        randomVariance = Math.random() * randomVarianceMax;
+        // console.log(randomVariance);
     }
-    
-    
+   
+    if(this.position.y + this.dy * deltaTime > canvas.height || this.position.y * deltaTime + this.dy < 0) {
+        this.dy = -this.dy;
+        randomVariance = Math.random() * randomVarianceMax;
+        // console.log(randomVariance);
+    }
+
+    this.position.x += this.dx * deltaTime + randomVariance;
+    this.position.y += this.dy * deltaTime + randomVariance;
+    // console.log(deltaTime);
+    this.verticies.forEach(function(vert) {
+        // console.log(this);
+        vert.x += self.dx * deltaTime + randomVariance;
+        vert.y += self.dy * deltaTime + randomVariance;
+        // console.log(vert.x);
+    });
+    // console.log(this.position.x);
 }
 
 function Position(x, y) {
@@ -159,3 +165,17 @@ function Position(x, y) {
     this.y = y;
 }
 
+
+
+
+function CollisionManager() {
+    this.collideableObjects = [];
+}
+
+CollisionManager.prototype.update = function(deltaTime) {
+    this.checkCollision();
+}
+
+CollisionManager.prototype.checkCollision = function() {
+
+}
