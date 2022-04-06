@@ -10,14 +10,9 @@ let fps;
 
 let asteroids = [];
 
-for(let i = 0; i < 1; i++) {
-    // asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500)));
-    // asteroids[i].calcAsteroidPoints(30,9,10)
-    // asteroids[i].dx = 1;
-    // asteroids[i].dy = 1;
-    let newAst = new Asteroid(new Position(2,2));
-    newAst.calcAsteroidPoints(30,9,10);
-    asteroids.push(newAst);
+for(let i = 0; i < 7; i++) {
+    asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500)));
+    asteroids[i].calcAsteroidPoints(12,10)
 }
 // console.log(asteroids);
 window.requestAnimationFrame(gameLoop);
@@ -27,8 +22,6 @@ function gameLoop(timeStamp) {
     // Calculate the number of seconds passed since the last frame
     secondsPassed = (timeStamp - oldTimeStamp) / 1000;
     oldTimeStamp = timeStamp;
-
-
 
     update(secondsPassed);
     draw();
@@ -58,19 +51,21 @@ function draw() {
     
 }
 
-
-
 function Asteroid(position) {
-    this.dx = 1;
-    this.dy = 1;
+    
     this.renderable = true;
     this.position = position;
     this.verticies = [];
-    // this.verticies = calcAsteroidPoints(position, 30, 9, 10);
-    this.calcAsteroidPoints = function (radius, n, variance) {
+    this.radius = (Math.random() * 80) + 20;
+    
+    this.dx = 1 / this.radius * 100;
+    this.dy = 1 / this.radius * 100;
+    this.calcAsteroidPoints = function (n, variance) {
         //plot a random point clockwise around a circle n times
-        
-        let verts = [];
+        //small 1-10
+        //medium 11-20
+        //large 21-30
+
         let realVariance = 0;
         for(let i = 0; i < n; i++) {
             if(Math.random() >= 0.5) {
@@ -78,17 +73,22 @@ function Asteroid(position) {
             } else {
                 realVariance = Math.random() * variance;
             }
-            let x = this.position.x + radius * Math.cos(2 * Math.PI * i / n) + realVariance;
-            let y = this.position.y + radius * Math.sin(2 * Math.PI * i / n) + realVariance;
+            let x = this.position.x + this.radius * Math.cos(2 * Math.PI * i / n) + realVariance;
+            let y = this.position.y + this.radius * Math.sin(2 * Math.PI * i / n) + realVariance;
             let newPos = new Position(x, y);
-            verts.push(newPos);
+            this.verticies.push(newPos);
             // console.log(verts);
         }
         // console.log(verts);
-        verts.map(elem => this.verticies.push(elem));
+        // this.verticies = vert;
+        // verts.map(elem => this.verticies.push(elem));
     }
 
-    
+    this.update = function () {
+        this.checkCollision();   
+        // console.log(this.position);
+    }
+
     this.draw = function (context) {
         if (this.renderable) {
             context.beginPath();
@@ -106,30 +106,29 @@ function Asteroid(position) {
     }
     
     this.checkCollision = function() {
+        let self = this;
+        // console.log(this);
         //check border collision
-        if(this.position.x + this.dx > 600 || this.position.x + this.dx < 0) {
+        if(this.position.x + this.dx > canvas.width || this.position.x + this.dx < 0) {
             this.dx = -this.dx;
         }
        
-        if(this.position.y + this.dy > 600 || this.position.y + this.dy < 0) {
+        if(this.position.y + this.dy > canvas.height || this.position.y + this.dy < 0) {
             this.dy = -this.dy;
         }
 
         this.position.x += this.dx;
         this.position.y += this.dy;
         this.verticies.forEach(function(vert) {
-            vert.x += this.dx;
-            vert.y += this.dy;
+            // console.log(this);
+            vert.x += self.dx;
+            vert.y += self.dy;
             // console.log(vert.x);
         });
         // console.log(this.position.x);
     }
     
-    this.update = function () {
-        this.checkCollision();   
-        // console.log(this.position);
-    }
-   
+    
 }
 
 function Sprite(position) {
