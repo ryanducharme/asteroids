@@ -6,17 +6,14 @@ let fps;
 let deltaTime;
 
 
-// let player = new Sprite(new Position(300, 300))
-// let asteroid = new Asteroid(new Position(200, 300));
-// asteroid.calcAsteroidPoints(12,10)
 let asteroids = [];
-// asteroids.push(asteroid);
-for(let i = 0; i < 7; i++) {
-    // asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), (Math.random() * 80) + 20));
-    asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), 100));
+
+for(let i = 0; i < 10; i++) {
+    asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), (Math.random() * 80) + 20));
+    // asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), 100));
     asteroids[i].calcAsteroidPoints(12,10)
 }
-// console.log(asteroids);
+
 window.requestAnimationFrame(gameLoop);
 
 function gameLoop(timeStamp) {
@@ -62,7 +59,12 @@ function Asteroid(position, radius) {
     this.position = position;
     this.verticies = [];
     this.radius = radius;
-    
+    this.color = {
+        r: 0,
+        g: 0,
+        b: 0
+    }
+    // this.mass = this.radius * 100;
     this.dx = 0.1 / this.radius * 100;
     this.dy = 0.1 / this.radius * 100;
     this.calcAsteroidPoints = function (n, variance) {
@@ -91,8 +93,17 @@ function Asteroid(position, radius) {
 
     this.draw = function (context) {
         if (this.renderable) {
+
+            
+            this.color.r = this.radius / 2;
+            this.color.g = this.radius / 2;
+            this.color.b = this.radius / 2;
+            // this.color.g *= this.mass;
+            // this.color.b *= this.mass * 10000;
+
+        
             context.beginPath();
-    
+            context.fillStyle = `rgb(${this.color.r},${this.color.g},${this.color.b})`;
             let points = this.verticies;
             // console.log(points);
             context.moveTo(this.position.x, this.position.y)
@@ -102,28 +113,39 @@ function Asteroid(position, radius) {
             context.lineTo(points[0].x, points[0].y);
             context.fill()
             context.closePath();
+           
+            context.font = '20px Arial';
+            context.fillStyle = 'green';
+            context.fillText(`${Math.round(this.dx * 100) / 100}`,this.position.x, this.position.y);
+            
         }
     }
     
     this.checkCollision = function() {
         let self = this;
+        let randomVariance = 0;
+        let randomVarianceMax = 2;
         // console.log(this);
         //check border collision
         if(this.position.x + this.dx * deltaTime > canvas.width || this.position.x * deltaTime + this.dx < 0) {
             this.dx = -this.dx;
+            randomVariance = Math.random() * randomVarianceMax;
+            // console.log(randomVariance);
         }
        
         if(this.position.y + this.dy * deltaTime > canvas.height || this.position.y * deltaTime + this.dy < 0) {
             this.dy = -this.dy;
+            randomVariance = Math.random() * randomVarianceMax;
+            // console.log(randomVariance);
         }
 
-        this.position.x += this.dx * deltaTime;
-        this.position.y += this.dy * deltaTime;
+        this.position.x += this.dx * deltaTime + randomVariance;
+        this.position.y += this.dy * deltaTime + randomVariance;
         // console.log(deltaTime);
         this.verticies.forEach(function(vert) {
             // console.log(this);
-            vert.x += self.dx * deltaTime;
-            vert.y += self.dy * deltaTime;
+            vert.x += self.dx * deltaTime + randomVariance;
+            vert.y += self.dy * deltaTime + randomVariance;
             // console.log(vert.x);
         });
         // console.log(this.position.x);
@@ -132,31 +154,8 @@ function Asteroid(position, radius) {
     
 }
 
-function Sprite(position) {
-    this.renderable = true;
-    this.position = position;
-    this.verticies = [new Position(200, 200), new Position(300, 300)]
-    this.draw = function (context) {
-        if (this.renderable) {
-            console.log(`time to render using ${context.toString()}`);
-            context.beginPath();
-            context.moveTo(this.verticies[0].x * Math.random(), this.verticies[0].y);
-            context.lineTo(this.verticies[1].x, this.verticies[1].y);
-            context.stroke();
-
-        }
-    }
-}
-
-function Velocity(x, y) {
-    this.x = x;
-    this.y = y;
-}
 function Position(x, y) {
     this.x = x;
     this.y = y;
-}
-function Vector(x, y) {
-
 }
 
