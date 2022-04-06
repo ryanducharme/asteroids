@@ -5,15 +5,47 @@ let oldTimeStamp = 0;
 let fps;
 let deltaTime;
 
+let mouseState = {
+    mouseX: 0,
+    mouseY: 0
+}
 
 let asteroids = [];
 let collissionManager = new CollisionManager();
-for (let i = 0; i < 20; i++) {
+for (let i = 0; i < 3; i++) {
     asteroids.push(new Asteroid(i, new Vector(Math.random() * canvas.width, Math.random() * canvas.height), (Math.random() * 80) + 20));
     // asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), 100));
     asteroids[i].calcAsteroidPoints(12, 10);
     collissionManager.collideableObjects.push(asteroids[i]);
 }
+
+
+
+var mouseIsDown = false;
+
+window.addEventListener('mousemove', function(e){
+    mouseState.mouseX = e.x;
+    mouseState.mouseY = e.y;
+})
+
+window.addEventListener('mousedown', function(e) {
+
+    
+    asteroids.forEach(function (aster) {
+        if (collissionManager.isPointInCircle(e.x, e.y, aster.radius, aster.position.x, aster.position.y)) {
+            if(aster.selected) {
+                aster.selected = false;
+            } else {
+                aster.selected = true;
+            }
+            
+        } else {
+            aster.selected = false;
+        }
+        console.log(aster.selected);
+    });
+});
+
 
 window.requestAnimationFrame(gameLoop);
 
@@ -33,6 +65,7 @@ function gameLoop(timeStamp) {
 }
 
 function update(deltaTime) {
+    console.log(mouseState);
     asteroids.forEach(asteroid => asteroid.update(deltaTime));
     collissionManager.update(deltaTime);
 }
@@ -63,8 +96,9 @@ function Asteroid(id, position, radius) {
         b: 0
     }
     this.id = id;
-    this.velocity = new Vector(0.1, 0.1);
-    this.direction = new Vector(-1,1);
+    this.selected = false;
+    this.velocity = new Vector(0.0, 0.0);
+    this.direction = new Vector(-1, 1);
     this.mass = this.radius * 100;
     // this.collisionRadius = this.radius * 4;
     this.calcAsteroidPoints = function (n, variance) {
@@ -86,14 +120,18 @@ function Asteroid(id, position, radius) {
             this.verticies.push(newPos);
         }
     }
-    
+
     this.update = function (deltaTime) {
-        
-        this.position.x += this.direction.x * this.velocity.x * deltaTime;
-        this.position.y += this.direction.y * this.velocity.y * deltaTime;
+        if(this.selected) {
+            this.position.x = mouseState.mouseX;
+            this.position.y = mouseState.mouseY;
+        } else {
+            this.position.x += this.direction.x * this.velocity.x * deltaTime;
+            this.position.y += this.direction.y * this.velocity.y * deltaTime;
+        }
         this.adjustVerticies(deltaTime);
     }
-    this.adjustVerticies = function(deltaTime) {
+    this.adjustVerticies = function (deltaTime) {
         let self = this;
         this.verticies.forEach(function (vert) {
             // console.log(this);
@@ -116,7 +154,7 @@ function Asteroid(id, position, radius) {
             context.beginPath();
             context.fillStyle = `rgb(${this.color.r},${this.color.g},${this.color.b})`;
             // let points = this.verticies;
-            
+
             // context.moveTo(this.position.x, this.position.y)
             // points.forEach(function (point) {
             //     context.lineTo(point.x, point.y);
@@ -142,7 +180,7 @@ function Asteroid(id, position, radius) {
 
             context.font = '20px Arial';
             context.fillStyle = 'green';
-            context.fillText(`${Math.round(this.position.x)}`, this.position.x, this.position.y);
+            context.fillText(`${Math.round(this.id)}`, this.position.x - 8, this.position.y + 5);
 
         }
     }
@@ -163,13 +201,17 @@ function CollisionManager() {
 CollisionManager.prototype.update = function (deltaTime) {
     this.checkCollision(deltaTime);
 }
-
+CollisionManager.prototype.isPointInCircle = function (x1, y1, r1, px, py) {
+    if (((x1 - px) * (x1 - px) + (y1 - py) * (y1 - py)) < (r1 * r1)) {
+        return true;
+    } else {
+        return false;
+    }
+}
 CollisionManager.prototype.checkCollision = function (deltaTime) {
     let self = this;
 
     collidableObjs = this.collideableObjects;
-    let testObj = this.collideableObjects[0];
-    let testObj2 = this.collideableObjects[1];
 
     function doObjsOverlap(obj1, obj2) {
         let x1 = obj1.position.x;
@@ -184,18 +226,18 @@ CollisionManager.prototype.checkCollision = function (deltaTime) {
         if ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) <= (r1 + r2) * (r1 + r2)) {
             console.log('overlap');
             return true;
-            
+
         } else {
             return false;
         }
     }
 
-   
+
     function resolve(obj1, obj2) {
-        if(doObjsOverlap(obj1, obj2)) {
+        if (doObjsOverlap(obj1, obj2)) {
             // console.log('time to resolve!');
             let distance = Math.sqrt((obj1.position.x - obj2.position.x) * (obj1.position.x - obj2.position.x) + (obj1.position.y - obj2.position.y) * (obj1.position.y - obj2.position.y));
-            let overlap = (0.5 *(distance - obj1.radius - obj2.radius));
+            let overlap = (0.5 * (distance - obj1.radius - obj2.radius));
 
             obj1.position.x -= overlap * (obj1.position.x - obj2.position.x) / distance;
             obj1.position.y -= overlap * (obj1.position.y - obj2.position.y) / distance;
@@ -203,30 +245,32 @@ CollisionManager.prototype.checkCollision = function (deltaTime) {
             obj2.position.x += overlap * (obj1.position.x - obj2.position.x) / distance;
             obj2.position.y += overlap * (obj1.position.y - obj2.position.y) / distance;
 
-        //    obj1.adjustVerticies(deltaTime);
+            //    obj1.adjustVerticies(deltaTime);
 
         }
     }
 
     function checkInBounds() {
-        collidableObjs.forEach(function(obj) {
+        collidableObjs.forEach(function (obj) {
             // console.log('checking' + obj);
             if (obj.position.x + obj.direction.x * deltaTime > canvas.width || obj.position.x + obj.direction.x * deltaTime < 0) {
                 obj.direction.x = -obj.direction.x;
+                // obj.position.x = canvas.width + obj;
             } else if (obj.position.y + obj.direction.y * deltaTime > canvas.height || obj.position.y + obj.direction.y * deltaTime < 0) {
                 obj.direction.y = -obj.direction.y;
+                // obj.position.y = 0 - obj.radius;
             }
         });
-        
+
     }
-    
+
     checkInBounds();
-   for(let currentObj = 0; currentObj < this.collideableObjects.length; currentObj++) {
-        for(let target = 0; target < this.collideableObjects.length; target++) {
-            if(this.collideableObjects[currentObj].id != this.collideableObjects[target].id) {
+    for (let currentObj = 0; currentObj < this.collideableObjects.length; currentObj++) {
+        for (let target = 0; target < this.collideableObjects.length; target++) {
+            if (this.collideableObjects[currentObj].id != this.collideableObjects[target].id) {
                 resolve(this.collideableObjects[currentObj], this.collideableObjects[target]);
             }
-        } 
-   }
-    
+        }
+    }
+
 }
