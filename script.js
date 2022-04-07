@@ -9,6 +9,12 @@ let mouseState = {
     mouseX: 0,
     mouseY: 0
 }
+let controllerState = {
+    north: false,
+    south: false,
+    east: false,
+    west: false,
+}
 let asteroids = [];
 let collissionManager = new CollisionManager();
 for (let i = 0; i < 20; i++) {
@@ -23,7 +29,6 @@ window.addEventListener('mousemove', function (e) {
     mouseState.mouseX = e.x;
     mouseState.mouseY = e.y;
 })
-
 window.addEventListener('mousedown', function (e) {
     asteroids.forEach(function (aster) {
         if (collissionManager.isPointInCircle(e.x, e.y, aster.radius, aster.position.x, aster.position.y)) {
@@ -39,34 +44,77 @@ window.addEventListener('mousedown', function (e) {
         console.log(aster.selected);
     });
 });
+window.addEventListener('keydown', function(e) {
+    
+    if(e.key == 'w') {
+        controllerState.north = true;
+    }
+    if(e.key == 'a') {
+        controllerState.west = true;
+    }
+    if(e.key == 's') {
+        controllerState.south = true;
+    }
+    if(e.key == 'd') {
+        controllerState.east = true;
+    }
 
+});
+window.addEventListener('keyup', function(e) {
+    if(e.key == 'w') {
+        controllerState.north = false;
+    }
+    if(e.key == 'a') {
+        controllerState.west = false;
+    }
+    if(e.key == 's') {
+        controllerState.south = false;
+    }
+    if(e.key == 'd') {
+        controllerState.east = false;
+    }
 
+})
+function GameObject() {
+}
 function Player() {
     this.radius = 10;
-    this.position = undefined;
+    this.position = new Vector(300,300);
     this.velocity = undefined;
     this.direction = undefined;
     this.health = 100;
     this.ammo = 100;
     this.shield = 100;
 }
-
 Player.prototype.move = function () {
-    console.log('moving');
+    // this.position.y -= 3;
 }
 Player.prototype.fire = function () {
-    this.ammo -= 1;
+    this.ammo *= 1 * deltaTime;
     console.log(`Fire! Ammo:${this.ammo}`);
 }
 Player.prototype.update = function (deltaTime) {
-
+    // this.position.y -= 3;
+    if(controllerState.north) {
+        this.position.y -= 3;
+    }
+    if(controllerState.south) {
+        this.position.y += 3;
+    }
+    if(controllerState.east) {
+        this.position.x += 3;
+    }
+    if(controllerState.west) {
+        this.position.x -= 3;
+    }
 }
 Player.prototype.draw = function (context) {
+    
     context.beginPath()
     context.fillStyle = 'lime';
     // context.fillRect(0, 0, 200, 100);
 
-    context.fillRect(200, 200, 200, 200);
+    context.fillRect(this.position.x, this.position.y, 30,30);
     context.closePath()
     // console.log('drawing');
 }
@@ -105,16 +153,20 @@ function update(deltaTime) {
 
 function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = 'black';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    // context.fillStyle = 'white'
+
     fps = Math.round(1 / secondsPassed);
 
     player.draw(context);
     asteroids.forEach(asteroid => asteroid.draw(context));
 
     // Draw number to the screen
-    context.fillStyle = 'black';
+    context.fillStyle = 'green';
     context.fillRect(0, 0, 200, 100);
     context.font = '25px Arial';
-    context.fillStyle = 'white';
+    context.fillStyle = 'black';
     context.fillText("FPS: " + fps, 10, 30);
     context.fillText("Delta: " + Math.round(deltaTime), 10, 50);
 }
@@ -208,11 +260,11 @@ function Asteroid(id, position, radius) {
             context.fill()
             context.closePath();
 
-            context.beginPath();
-            context.strokeStyle = 'red';
-            context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-            context.stroke();
-            context.closePath();
+            // context.beginPath();
+            // context.strokeStyle = 'red';
+            // context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+            // context.stroke();
+            // context.closePath();
 
 
             context.font = '20px Arial';
