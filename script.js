@@ -14,9 +14,11 @@ let controllerState = {
     south: false,
     east: false,
     west: false,
+    fire: false
 }
 let asteroids = [];
 let collissionManager = new CollisionManager();
+collissionManager.collideableObjects.push(player);
 for (let i = 0; i < 20; i++) {
     asteroids.push(new Asteroid(i, new Vector(Math.random() * canvas.width, Math.random() * canvas.height), (Math.random() * 80) + 20));
     // asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), 100));
@@ -45,7 +47,7 @@ window.addEventListener('mousedown', function (e) {
     });
 });
 window.addEventListener('keydown', function(e) {
-    
+    // console.log(e);
     if(e.key == 'w') {
         controllerState.north = true;
     }
@@ -58,9 +60,13 @@ window.addEventListener('keydown', function(e) {
     if(e.key == 'd') {
         controllerState.east = true;
     }
+    if(!e.repeat && e.key == ' ') {
+        controllerState.fire = true;
+    }
 
 });
 window.addEventListener('keyup', function(e) {
+
     if(e.key == 'w') {
         controllerState.north = false;
     }
@@ -73,12 +79,22 @@ window.addEventListener('keyup', function(e) {
     if(e.key == 'd') {
         controllerState.east = false;
     }
-
+    if(e.key == ' ') {
+        controllerState.fire = false;
+    }
 })
+
+window.requestAnimationFrame(gameLoop);
 function GameObject() {
 }
+
+function Vector(x, y) {
+    this.x = x;
+    this.y = y;
+}
+
 function Player() {
-    this.radius = 10;
+    this.radius = 40;
     this.position = new Vector(300,300);
     this.velocity = undefined;
     this.direction = undefined;
@@ -90,22 +106,25 @@ Player.prototype.move = function () {
     // this.position.y -= 3;
 }
 Player.prototype.fire = function () {
-    this.ammo *= 1 * deltaTime;
+    this.ammo -= 1;
     console.log(`Fire! Ammo:${this.ammo}`);
 }
 Player.prototype.update = function (deltaTime) {
     // this.position.y -= 3;
     if(controllerState.north) {
-        this.position.y -= 3;
+        this.position.y -= 0.4 * deltaTime;
     }
     if(controllerState.south) {
-        this.position.y += 3;
+        this.position.y += 0.4 * deltaTime;
     }
     if(controllerState.east) {
-        this.position.x += 3;
+        this.position.x += 0.4 * deltaTime;
     }
     if(controllerState.west) {
-        this.position.x -= 3;
+        this.position.x -= 0.4 * deltaTime;
+    }
+    if(controllerState.fire) {
+        this.fire();
     }
 }
 Player.prototype.draw = function (context) {
@@ -127,8 +146,6 @@ function randomSign(num) {
         return num;
     }
 }
-window.requestAnimationFrame(gameLoop);
-
 function gameLoop(timeStamp) {
 
     // Calculate the number of seconds passed since the last frame
@@ -143,14 +160,12 @@ function gameLoop(timeStamp) {
     // The loop function has reached it's end. Keep requesting new frames
     window.requestAnimationFrame(gameLoop);
 }
-
 function update(deltaTime) {
     // console.log(mouseState);
     player.update(deltaTime);
     asteroids.forEach(asteroid => asteroid.update(deltaTime));
     collissionManager.update(deltaTime);
 }
-
 function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = 'black';
@@ -275,11 +290,6 @@ function Asteroid(id, position, radius) {
     }
 }
 
-function Vector(x, y) {
-    this.x = x;
-    this.y = y;
-}
-
 function CollisionManager() {
     this.collideableObjects = [];
 }
@@ -362,4 +372,14 @@ CollisionManager.prototype.checkCollision = function (deltaTime) {
         }
     }
     // console.log(sqRtCount);
+}
+
+function GameManager() {
+    this.state = {
+        running: false,
+        mainMenu: false,
+        gamePlay: false
+    }
+
+    // this.inputManager
 }
