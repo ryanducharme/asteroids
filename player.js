@@ -45,7 +45,7 @@ Player.prototype.update = function (deltaTime) {
     }
 
     this.regen();
-    console.log(this.state.energy);
+    // console.log(this.state.energy);
 }
 Player.prototype.draw = function (context) {    
     context.beginPath()

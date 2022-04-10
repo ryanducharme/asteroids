@@ -21,8 +21,14 @@ let inputHandlerState = {
 
 }
 let asteroids = [];
+let gameState = {
+    pause: false,
+    running: true
+}
 let collissionManager = new CollisionManager();
 collissionManager.collideableObjects.push(player);
+
+
 for (let i = 0; i < 20; i++) {
     asteroids.push(new Asteroid(i, new Vector(Math.random() * canvas.width, Math.random() * canvas.height), (Math.random() * 80) + 20));
     // asteroids.push(new Asteroid(new Position(Math.random() * 500, Math.random() * 500), 100));
@@ -42,50 +48,46 @@ window.addEventListener('mousedown', function (e) {
 window.addEventListener('mouseup', function (e) {
     inputHandlerState.mouseState.mouseDown = false;
 });
-window.addEventListener('keydown', function(e) {
-    // console.log(e);
-    if(e.key == 'w') {
+window.addEventListener('keydown', function (e) {
+    console.log(e.key);
+    if (e.key == 'w') {
         inputHandlerState.north = true;
     }
-    if(e.key == 'a') {
+    if (e.key == 'a') {
         inputHandlerState.west = true;
     }
-    if(e.key == 's') {
+    if (e.key == 's') {
         inputHandlerState.south = true;
     }
-    if(e.key == 'd') {
+    if (e.key == 'd') {
         inputHandlerState.east = true;
     }
-    // if(!e.repeat && e.key == ' ') {
-    //     inputHandlerState.fire = true;
-    // }
-    if(e.key == ' ') {
-        inputHandlerState.boost = true;
+    if (e.key == 'Escape') {
+        if (gameState.pause) {
+            gameState.pause = false;
+        } else {
+            gameState.pause = true;
+        }
+
     }
-
 });
-window.addEventListener('keyup', function(e) {
+window.addEventListener('keyup', function (e) {
 
-    if(e.key == 'w') {
+    if (e.key == 'w') {
         inputHandlerState.north = false;
     }
-    if(e.key == 'a') {
+    if (e.key == 'a') {
         inputHandlerState.west = false;
     }
-    if(e.key == 's') {
+    if (e.key == 's') {
         inputHandlerState.south = false;
     }
-    if(e.key == 'd') {
+    if (e.key == 'd') {
         inputHandlerState.east = false;
     }
-    // if(e.key == ' ') {
-    //     inputHandlerState.fire = false;
-    // }
 })
 window.requestAnimationFrame(gameLoop);
 
-function GameObject() {
-}
 function Vector(x, y) {
     this.x = x;
     this.y = y;
@@ -114,9 +116,15 @@ function gameLoop(timeStamp) {
 }
 function update(deltaTime) {
     // console.log(mouseState);
-    player.update(deltaTime);
-    asteroids.forEach(asteroid => asteroid.update(deltaTime));
-    collissionManager.update(deltaTime);
+
+    if (!gameState.pause) {
+        player.update(deltaTime);
+        asteroids.forEach(asteroid => asteroid.update(deltaTime));
+        collissionManager.update(deltaTime);
+    }
+
+    updateUI(deltaTime);
+
 }
 function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -124,26 +132,53 @@ function draw() {
     context.fillRect(0, 0, canvas.width, canvas.height);
     // context.fillStyle = 'white'
 
-    fps = Math.round(1 / secondsPassed);
+
 
     player.draw(context);
     asteroids.forEach(asteroid => asteroid.draw(context));
 
-    // Draw number to the screen
-    context.fillStyle = 'green';
-    context.fillRect(0, 0, 200, 100);
-    context.font = '25px Arial';
-    context.fillStyle = 'black';
-    context.fillText("FPS: " + fps, 10, 30);
-    context.fillText("Delta: " + Math.round(deltaTime), 10, 50);
+
+
+    drawUI(context);
+
 }
 
-function GameManager() {
-    this.state = {
-        running: false,
-        mainMenu: false,
-        gamePlay: false
-    }
 
-    // this.inputManager
+
+function Button(width, height, position, color) {
+    this.width = width;
+    this.height = height;
+    this.position = position;
+    this.color = color;
+    this.visible = true;
+    this.text = '';
+    this.textColor = 'black';
+    this.clicked = false;
+    this.checkClick = function() {
+        if(inputHandlerState.mouseState.x >= this.position.x 
+            && inputHandlerState.mouseState.x <= this.position.x + this.width
+            && inputHandlerState.mouseState.y >= this.position.y
+            && inputHandlerState.mouseState.x >= this.position.y + this.height) 
+                {
+                    if(inputHandlerState.mouseState.mouseDown) {
+                        this.doClick();
+                        console.log('inbounds');
+                    }
+                }
+    }
+    this.doClick = function(){};
+    this.update = function (deltaTime) {
+        this.checkClick();
+    }
+    
+    this.draw = function (context) {
+        if(this.visible) {
+            //draw me
+            context.fillStyle = `${this.color}`;
+            context.fillRect(this.position.x, this.position.y, this.width, this.height)
+            context.fillStyle = this.textColor;
+            
+            context.fillText(this.text, this.position.x, this.position.y + 25);
+        }
+    }
 }
