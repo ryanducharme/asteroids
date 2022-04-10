@@ -5,16 +5,20 @@ let oldTimeStamp = 0;
 let fps;
 let deltaTime;
 let player = new Player();
-let mouseState = {
-    mouseX: 0,
-    mouseY: 0
-}
-let controllerState = {
+let inputHandlerState = {
     north: false,
     south: false,
     east: false,
     west: false,
-    fire: false
+    fire: false,
+    boost: false,
+    mouseState: {
+        mouseDown: false,
+        mouseUp: false,
+        x: 0,
+        y: 0
+    }
+
 }
 let asteroids = [];
 let collissionManager = new CollisionManager();
@@ -28,116 +32,64 @@ for (let i = 0; i < 20; i++) {
 }
 
 window.addEventListener('mousemove', function (e) {
-    mouseState.mouseX = e.x;
-    mouseState.mouseY = e.y;
+    inputHandlerState.mouseState.x = e.x;
+    inputHandlerState.mouseState.y = e.y;
+    // console.log(inputHandlerState.mouseState.x);
 })
 window.addEventListener('mousedown', function (e) {
-    asteroids.forEach(function (aster) {
-        if (collissionManager.isPointInCircle(e.x, e.y, aster.radius, aster.position.x, aster.position.y)) {
-            if (aster.selected) {
-                aster.selected = false;
-            } else {
-                aster.selected = true;
-            }
-
-        } else {
-            aster.selected = false;
-        }
-        console.log(aster.selected);
-    });
+    inputHandlerState.mouseState.mouseDown = true;
+});
+window.addEventListener('mouseup', function (e) {
+    inputHandlerState.mouseState.mouseDown = false;
 });
 window.addEventListener('keydown', function(e) {
     // console.log(e);
     if(e.key == 'w') {
-        controllerState.north = true;
+        inputHandlerState.north = true;
     }
     if(e.key == 'a') {
-        controllerState.west = true;
+        inputHandlerState.west = true;
     }
     if(e.key == 's') {
-        controllerState.south = true;
+        inputHandlerState.south = true;
     }
     if(e.key == 'd') {
-        controllerState.east = true;
+        inputHandlerState.east = true;
     }
-    if(!e.repeat && e.key == ' ') {
-        controllerState.fire = true;
+    // if(!e.repeat && e.key == ' ') {
+    //     inputHandlerState.fire = true;
+    // }
+    if(e.key == ' ') {
+        inputHandlerState.boost = true;
     }
 
 });
 window.addEventListener('keyup', function(e) {
 
     if(e.key == 'w') {
-        controllerState.north = false;
+        inputHandlerState.north = false;
     }
     if(e.key == 'a') {
-        controllerState.west = false;
+        inputHandlerState.west = false;
     }
     if(e.key == 's') {
-        controllerState.south = false;
+        inputHandlerState.south = false;
     }
     if(e.key == 'd') {
-        controllerState.east = false;
+        inputHandlerState.east = false;
     }
-    if(e.key == ' ') {
-        controllerState.fire = false;
-    }
+    // if(e.key == ' ') {
+    //     inputHandlerState.fire = false;
+    // }
 })
-
 window.requestAnimationFrame(gameLoop);
+
 function GameObject() {
 }
-
 function Vector(x, y) {
     this.x = x;
     this.y = y;
 }
-
-function Player() {
-    this.radius = 40;
-    this.position = new Vector(300,300);
-    this.velocity = undefined;
-    this.direction = undefined;
-    this.health = 100;
-    this.ammo = 100;
-    this.shield = 100;
-}
-Player.prototype.move = function () {
-    // this.position.y -= 3;
-}
-Player.prototype.fire = function () {
-    this.ammo -= 1;
-    console.log(`Fire! Ammo:${this.ammo}`);
-}
-Player.prototype.update = function (deltaTime) {
-    // this.position.y -= 3;
-    if(controllerState.north) {
-        this.position.y -= 0.4 * deltaTime;
-    }
-    if(controllerState.south) {
-        this.position.y += 0.4 * deltaTime;
-    }
-    if(controllerState.east) {
-        this.position.x += 0.4 * deltaTime;
-    }
-    if(controllerState.west) {
-        this.position.x -= 0.4 * deltaTime;
-    }
-    if(controllerState.fire) {
-        this.fire();
-    }
-}
-Player.prototype.draw = function (context) {
-    
-    context.beginPath()
-    context.fillStyle = 'lime';
-    // context.fillRect(0, 0, 200, 100);
-
-    context.fillRect(this.position.x, this.position.y, 30,30);
-    context.closePath()
-    // console.log('drawing');
-}
-
 
 function randomSign(num) {
     if (Math.random() >= 0.5) {
@@ -184,194 +136,6 @@ function draw() {
     context.fillStyle = 'black';
     context.fillText("FPS: " + fps, 10, 30);
     context.fillText("Delta: " + Math.round(deltaTime), 10, 50);
-}
-
-function Asteroid(id, position, radius) {
-    this.renderable = true;
-    this.position = position;
-    this.verticies = [];
-    this.radius = radius;
-    this.color = {
-
-        r: -this.radius + 120,
-        g: -this.radius + 120,
-        b: -this.radius + 120
-    }
-    this.id = id;
-    this.selected = false;
-    this.velocity = new Vector(0.02, 0.02);
-    // this.direction = new Vector(1, -1);
-    this.direction = new Vector(randomSign(1), randomSign(1));
-    this.mass = this.radius * 10;
-    // this.collisionRadius = this.radius * 4;
-    this.pointVariance = [];
-
-    this.calcAsteroidPoints = function (n, variance) {
-        //plot a random point clockwise around a circle n times
-        //small 1-10
-        //medium 11-20
-        //large 21-30
-
-        let realVariance = 0;
-        for (let i = 0; i < n; i++) {
-            if (Math.random() >= 0.5) {
-                realVariance = Math.random() * variance * -1;
-            } else {
-                realVariance = Math.random() * variance;
-            }
-            let x = this.position.x + this.radius * Math.cos(2 * Math.PI * i / n) + realVariance;
-            let y = this.position.y + this.radius * Math.sin(2 * Math.PI * i / n) + realVariance;
-            let newPos = new Vector(x, y);
-            this.pointVariance.push(realVariance);
-            this.verticies.push(newPos);
-        }
-    }
-
-    this.update = function (deltaTime) {
-        if (this.selected) {
-            this.position.x = mouseState.mouseX;
-            this.position.y = mouseState.mouseY;
-        } else {
-            this.position.x += this.direction.x * this.velocity.x * deltaTime;
-            this.position.y += this.direction.y * this.velocity.y * deltaTime;
-        }
-        // this.verticies = this.calcAsteroidPoints(12,10)
-        this.adjustVerticies(deltaTime);
-    }
-    this.adjustVerticies = function (deltaTime) {
-        let self = this;
-        let newPoints = [...this.verticies];
-        this.verticies = [];
-        newPoints.forEach(function (vert, i) {
-            // console.log(self.position.x + self.velocity.x * self.direction.x);
-            let x = self.position.x + (self.radius) * Math.cos(2 * Math.PI * i / 12) + self.pointVariance[i];
-            let y = self.position.y + (self.radius) * Math.sin(2 * Math.PI * i / 12) + self.pointVariance[i];
-            let newPos = new Vector(x, y);
-            self.verticies.push(newPos);
-
-        });
-        //this.verticies = newPoints;
-    }
-    this.draw = function (context) {
-        if (this.renderable) {
-
-
-            // this.color.r = this.radius;
-            // this.color.g = this.radius;
-            // this.color.b = this.radius;
-            // // this.color.g *= this.mass;
-            // this.color.b *= this.mass * 10000;
-
-
-            context.beginPath();
-            context.fillStyle = `rgb(${this.color.r},${this.color.g},${this.color.b})`;
-            let points = this.verticies;
-
-            context.moveTo(this.position.x, this.position.y)
-            points.forEach(function (point) {
-                context.lineTo(point.x, point.y);
-            })
-            context.lineTo(points[0].x, points[0].y);
-            context.fill()
-            context.closePath();
-
-            // context.beginPath();
-            // context.strokeStyle = 'red';
-            // context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-            // context.stroke();
-            // context.closePath();
-
-
-            context.font = '20px Arial';
-            context.fillStyle = 'green';
-            context.fillText(`${Math.round(this.color.r)}`, this.position.x - 8, this.position.y + 5);
-
-        }
-    }
-}
-
-function CollisionManager() {
-    this.collideableObjects = [];
-}
-
-CollisionManager.prototype.update = function (deltaTime) {
-    this.checkCollision(deltaTime);
-}
-CollisionManager.prototype.isPointInCircle = function (x1, y1, r1, px, py) {
-    if (((x1 - px) * (x1 - px) + (y1 - py) * (y1 - py)) < (r1 * r1)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-CollisionManager.prototype.checkCollision = function (deltaTime) {
-    let self = this;
-    // let sqRtCount = 0;
-    collidableObjs = this.collideableObjects;
-
-    function doObjsOverlap(obj1, obj2) {
-        let x1 = obj1.position.x;
-        let x2 = obj2.position.x;
-
-        let y1 = obj1.position.y;
-        let y2 = obj2.position.y;
-
-        let r1 = obj1.radius;
-        let r2 = obj2.radius;
-
-        if ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) <= (r1 + r2) * (r1 + r2)) {
-            return true;
-
-        } else {
-            return false;
-        }
-    }
-    function resolve(obj1, obj2) {
-
-        if (doObjsOverlap(obj1, obj2)) {
-
-            let distance = Math.sqrt((obj1.position.x - obj2.position.x) * (obj1.position.x - obj2.position.x) + (obj1.position.y - obj2.position.y) * (obj1.position.y - obj2.position.y));
-            let overlap = (0.5 * (distance - obj1.radius - obj2.radius));
-
-            obj1.position.x -= overlap * (obj1.position.x - obj2.position.x) / distance;
-            obj1.position.y -= overlap * (obj1.position.y - obj2.position.y) / distance;
-
-            obj2.position.x += overlap * (obj1.position.x - obj2.position.x) / distance;
-            obj2.position.y += overlap * (obj1.position.y - obj2.position.y) / distance;
-
-            // obj1.radius *= 1.0004;
-            // obj2.radius /= 1.0004;
-        }
-    }
-    function checkInBounds() {
-        collidableObjs.forEach(function (obj) {
-            // console.log('checking' + obj);
-            if (obj.position.x - obj.radius * 1.1 > canvas.width) {
-                obj.position.x = 0;
-            }
-            else if (obj.position.x + obj.radius * 1.1 < 0) {
-                obj.position.x = canvas.width;
-            } else if (obj.position.y - obj.radius * 1.1 > canvas.height) {
-                obj.position.y = 0;
-            } else if (obj.position.y + obj.radius * 1.1 < 0) {
-                obj.position.y = canvas.height;
-            }
-        });
-
-    }
-
-    checkInBounds();
-    for (let currentObj = 0; currentObj < this.collideableObjects.length; currentObj++) {
-        for (let target = currentObj + 1; target < this.collideableObjects.length; target++)
-        // for (let target = 0; target < this.collideableObjects.length; target++)
-        {
-            if (this.collideableObjects[currentObj].id != this.collideableObjects[target].id) {
-                resolve(this.collideableObjects[currentObj], this.collideableObjects[target]);
-                // sqRtCount++;
-            }
-        }
-    }
-    // console.log(sqRtCount);
 }
 
 function GameManager() {
