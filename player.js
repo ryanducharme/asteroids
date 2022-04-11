@@ -11,7 +11,8 @@ function Player() {
     this.velocity = undefined;
     this.direction = undefined;
     this.rotation = 1;
-    this.particleEmitter = new ParticleEmitter(this.position.x, this.position.y);
+    
+    
 }
 Player.prototype.move = function () {
     // this.position.y -= 3;
@@ -22,7 +23,7 @@ Player.prototype.fire = function () {
 }
 Player.prototype.update = function (deltaTime) {
     // this.position.y -= 3;
-    pEmitter.update(deltaTime);
+    // this.particleEmitter.update(deltaTime);
     if(inputHandlerState.north) {
         this.position.y -= 0.4 * deltaTime;
     }
@@ -47,13 +48,10 @@ Player.prototype.update = function (deltaTime) {
         this.state.mining = false;
         
     }
-    this.rotation++;
+    
     this.regen();
-    // console.log(this.state.energy);
 }
 Player.prototype.draw = function (context) {    
-    // context.save();
-
     context.beginPath()
     context.fillStyle = 'lime';
 
@@ -71,6 +69,9 @@ Player.prototype.draw = function (context) {
         context.stroke();
         context.closePath();
     }
+
+
+    // this.particleEmitter.draw(context);
     // context.restore();
     // this.haileegoose(context);
 }
@@ -86,6 +87,7 @@ Player.prototype.mine = function(){
     if(this.state.energy > 0.5) {
         this.state.energy -= 0.5;
         // console.log(this.state.energy);
+        // this.particleEmitter.update(deltaTime);
     }
 }
 Player.prototype.haileegoose = function(context){

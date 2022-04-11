@@ -1,12 +1,16 @@
 canvas = document.querySelector('canvas');
 context = canvas.getContext('2d');
-let secondsPassed;
+let secondsPassed = 0;
 let oldTimeStamp = 0;
 let fps;
 let deltaTime;
 let player = new Player();
-let pEmitter = new ParticleEmitter(new Vector(300,300));
+let gTime = new Time();
 // let particle = new Particle(new Vector(100,100), 'red');
+
+let particleEmitter = new ParticleEmitter(new Vector(300,300), secondsPassed);
+
+
 let mouseInteractables = [];
 let inputHandlerState = {
     north: false,
@@ -29,6 +33,7 @@ let gameState = {
     running: true
 }
 let collissionManager = new CollisionManager();
+
 collissionManager.collideableObjects.push(player);
 mouseInteractables.push(player);
 
@@ -45,7 +50,6 @@ for (let i = 0; i < 20; i++) {
 window.addEventListener('mousemove', function (e) {
     inputHandlerState.mouseState.x = e.x;
     inputHandlerState.mouseState.y = e.y;
-    // console.log(inputHandlerState.mouseState.x);
 })
 window.addEventListener('mousedown', function (e) {
     inputHandlerState.mouseState.mouseDown = true;
@@ -54,7 +58,7 @@ window.addEventListener('mouseup', function (e) {
     inputHandlerState.mouseState.mouseDown = false;
 });
 window.addEventListener('keydown', function (e) {
-    console.log(e.key);
+    // console.log(e.key);
     if (e.key == 'w') {
         inputHandlerState.north = true;
     }
@@ -109,41 +113,48 @@ function gameLoop(timeStamp) {
 
     // Calculate the number of seconds passed since the last frame
 
+    // gTime.deltaTime = (timeStamp - oldTimeStamp);
+    // gTime.currentTime = timeStamp;
+    // gTime.oldTime = timeStamp;
+
+
+
     deltaTime = (timeStamp - oldTimeStamp);
     secondsPassed = (timeStamp - oldTimeStamp) / 1000;
     oldTimeStamp = timeStamp;
     fps = 1/secondsPassed;
+    
     update(deltaTime);
     draw();
-    // console.log(fps);
-    // The loop function has reached it's end. Keep requesting new frames
     window.requestAnimationFrame(gameLoop);
 }
 function update(deltaTime) {
-    // console.log(mouseState);
-
     if (!gameState.pause) {
         player.update(deltaTime);
         asteroids.forEach(asteroid => asteroid.update(deltaTime));
         collissionManager.update(deltaTime);
     }
+    if(inputHandlerState.mouseState.mouseDown) {
+        
+    }
 
+    particleEmitter.update(deltaTime, secondsPassed);
 }
 function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = 'black';
     context.fillRect(0, 0, canvas.width, canvas.height);
-    // context.fillStyle = 'white'
 
-    pEmitter.draw(context);
+    // asteroids.forEach(asteroid => asteroid.draw(context));
+    // player.draw(context);
+    if(inputHandlerState.mouseState.mouseDown) {
+     
+    }
 
-    player.draw(context);
-    asteroids.forEach(asteroid => asteroid.draw(context));
+    particleEmitter.draw(context);
+    context.font = '30px calibri';
 
-
-    // particle.draw(context);
-    // drawUI(context);
-
+    context.fillText(`FPS: ${Math.floor(fps)}`, 10, 30);
 }
 
 
@@ -165,7 +176,7 @@ function Button(width, height, position, color) {
                 {
                     if(inputHandlerState.mouseState.mouseDown) {
                         this.doClick();
-                        console.log('inbounds');
+                        // console.log('inbounds');
                     }
                 }
     }
