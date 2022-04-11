@@ -22,6 +22,7 @@ Player.prototype.fire = function () {
 }
 Player.prototype.update = function (deltaTime) {
     // this.position.y -= 3;
+    pEmitter.update(deltaTime);
     if(inputHandlerState.north) {
         this.position.y -= 0.4 * deltaTime;
     }

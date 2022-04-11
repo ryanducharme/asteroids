@@ -127,11 +127,6 @@ function update(deltaTime) {
         asteroids.forEach(asteroid => asteroid.update(deltaTime));
         collissionManager.update(deltaTime);
     }
-    // pEmitter.position.x = player.position.x;
-    // pEmitter.position.y = player.position.y;
-    
-    // updateUI(deltaTime);
-    // console.log(fps);
 
 }
 function draw() {
