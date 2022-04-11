@@ -10,6 +10,8 @@ function Player() {
     this.position = new Vector(300,300);
     this.velocity = undefined;
     this.direction = undefined;
+    this.rotation = 1;
+    this.particleEmitter = new ParticleEmitter(this.position.x, this.position.y);
 }
 Player.prototype.move = function () {
     // this.position.y -= 3;
@@ -31,6 +33,7 @@ Player.prototype.update = function (deltaTime) {
     }
     if(inputHandlerState.west) {
         this.position.x -= 0.4 * deltaTime;
+        
     }
     if(inputHandlerState.fire) {
         this.fire();
@@ -43,17 +46,20 @@ Player.prototype.update = function (deltaTime) {
         this.state.mining = false;
         
     }
-
+    this.rotation++;
     this.regen();
     // console.log(this.state.energy);
 }
 Player.prototype.draw = function (context) {    
+    // context.save();
+
     context.beginPath()
     context.fillStyle = 'lime';
 
     context.fillRect(this.position.x, this.position.y, 30,30);
     context.closePath()
-    // console.log(this.state.mining);
+    
+    
     if(this.state.mining) {
         // console.log('mining');
         context.beginPath();
@@ -64,8 +70,8 @@ Player.prototype.draw = function (context) {
         context.stroke();
         context.closePath();
     }
-    // console.log('drawing');
-    //this.haileegoose(context);
+    // context.restore();
+    // this.haileegoose(context);
 }
 Player.prototype.boost = function() {
 

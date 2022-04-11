@@ -5,6 +5,9 @@ let oldTimeStamp = 0;
 let fps;
 let deltaTime;
 let player = new Player();
+let pEmitter = new ParticleEmitter(new Vector(300,300));
+// let particle = new Particle(new Vector(100,100), 'red');
+let mouseInteractables = [];
 let inputHandlerState = {
     north: false,
     south: false,
@@ -27,7 +30,7 @@ let gameState = {
 }
 let collissionManager = new CollisionManager();
 collissionManager.collideableObjects.push(player);
-
+mouseInteractables.push(player);
 
 for (let i = 0; i < 20; i++) {
     asteroids.push(new Asteroid(i, new Vector(Math.random() * canvas.width, Math.random() * canvas.height), (Math.random() * 80) + 20));
@@ -35,6 +38,8 @@ for (let i = 0; i < 20; i++) {
     asteroids[i].calcAsteroidPoints(12, 10);
     // asteroids[i].direction = new Vector(randomSign(1), randomSign(1));
     collissionManager.collideableObjects.push(asteroids[i]);
+
+    mouseInteractables.push(asteroids[i]);
 }
 
 window.addEventListener('mousemove', function (e) {
@@ -107,10 +112,10 @@ function gameLoop(timeStamp) {
     deltaTime = (timeStamp - oldTimeStamp);
     secondsPassed = (timeStamp - oldTimeStamp) / 1000;
     oldTimeStamp = timeStamp;
-
+    fps = 1/secondsPassed;
     update(deltaTime);
     draw();
-
+    // console.log(fps);
     // The loop function has reached it's end. Keep requesting new frames
     window.requestAnimationFrame(gameLoop);
 }
@@ -122,8 +127,11 @@ function update(deltaTime) {
         asteroids.forEach(asteroid => asteroid.update(deltaTime));
         collissionManager.update(deltaTime);
     }
-
-    updateUI(deltaTime);
+    // pEmitter.position.x = player.position.x;
+    // pEmitter.position.y = player.position.y;
+    
+    // updateUI(deltaTime);
+    // console.log(fps);
 
 }
 function draw() {
@@ -132,14 +140,14 @@ function draw() {
     context.fillRect(0, 0, canvas.width, canvas.height);
     // context.fillStyle = 'white'
 
-
+    pEmitter.draw(context);
 
     player.draw(context);
     asteroids.forEach(asteroid => asteroid.draw(context));
 
 
-
-    drawUI(context);
+    // particle.draw(context);
+    // drawUI(context);
 
 }
 
