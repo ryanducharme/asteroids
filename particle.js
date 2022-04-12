@@ -1,13 +1,14 @@
-class Particle {
+class Particle extends GameObject{
     constructor(position, velocityVector) {
-      this.position = position;
+      super(position);
+      // this.position = position;
       this.visible = true;
-      this.life = 4;
+      this.life = 3;
       this.color = {
         red: 255,
         green: 255,
-        blue: 255,
-        alpha: 0.7
+        blue: 0,
+        alpha: 0.8
       }
       this.size = 5;
       this.velocity = velocityVector;
@@ -18,6 +19,14 @@ class Particle {
             direction = -direction;
         }
         return direction;
+    }
+
+    update() {
+
+    }
+
+    draw() {
+
     }
    
 }

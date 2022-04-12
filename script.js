@@ -125,7 +125,7 @@ function gameLoop(timeStamp) {
     fps = 1/secondsPassed;
     
     update(deltaTime);
-    draw();
+    draw(context);
     window.requestAnimationFrame(gameLoop);
 }
 function update(deltaTime) {
@@ -140,21 +140,23 @@ function update(deltaTime) {
 
     particleEmitter.update(deltaTime, secondsPassed);
 }
-function draw() {
+function draw(context) {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = 'black';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    // asteroids.forEach(asteroid => asteroid.draw(context));
-    // player.draw(context);
+    asteroids.forEach(asteroid => asteroid.draw(context));
+    player.draw(context);
     if(inputHandlerState.mouseState.mouseDown) {
      
     }
 
     particleEmitter.draw(context);
+    context.beginPath();
     context.font = '30px calibri';
-
+    context.fillStyle = 'white'
     context.fillText(`FPS: ${Math.floor(fps)}`, 10, 30);
+    context.closePath();
 }
 
 
