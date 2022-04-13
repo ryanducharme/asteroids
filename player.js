@@ -16,13 +16,16 @@ function Player() {
     this.minerPEmitter.spawnRate = 0.1;
 
 }
+
 Player.prototype.move = function () {
     // this.position.y -= 3;
 }
+
 Player.prototype.fire = function () {
     this.ammo -= 1;
     // console.log(`Fire! Ammo:${this.ammo}`);
 }
+
 Player.prototype.update = function (deltaTime) {
    
     this.minerPEmitter.position.x = inputHandlerState.mouseState.x;

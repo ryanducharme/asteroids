@@ -9,6 +9,8 @@ let gTime = new Time();
 // let particle = new Particle(new Vector(100,100), 'red');
 
 let particleEmitter = new ParticleEmitter(new Vector(0,0), secondsPassed);
+let matrixUtils = new MatrixUtil();
+let tesm = new MatrixDraw(new Vector(500,500));
 
 
 let mouseInteractables = [];
@@ -136,6 +138,7 @@ function update(deltaTime) {
     }
 
     particleEmitter.update(deltaTime, secondsPassed);
+    tesm.update(deltaTime);
 }
 function draw(context) {
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -156,4 +159,6 @@ function draw(context) {
     context.fillStyle = 'white'
     context.fillText(`FPS: ${Math.floor(fps)}`, 10, 30);
     context.closePath();
+
+    tesm.draw(context);
 }

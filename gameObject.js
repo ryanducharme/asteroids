@@ -4,6 +4,7 @@ class GameObject {
         this.mouseInteractable = true;
         this.layer = 1;
         this.visible = true;
+        // this.mesh = [];
     }
 
     update(deltaTime) {
