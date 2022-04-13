@@ -8,7 +8,7 @@ let player = new Player();
 let gTime = new Time();
 // let particle = new Particle(new Vector(100,100), 'red');
 
-let particleEmitter = new ParticleEmitter(new Vector(300,300), secondsPassed);
+let particleEmitter = new ParticleEmitter(new Vector(0,0), secondsPassed);
 
 
 let mouseInteractables = [];
@@ -21,7 +21,7 @@ let inputHandlerState = {
     boost: false,
     mouseState: {
         mouseDown: false,
-        mouseUp: false,
+        mouseUp: true,
         x: 0,
         y: 0
     }
@@ -53,14 +53,17 @@ window.addEventListener('mousemove', function (e) {
 })
 window.addEventListener('mousedown', function (e) {
     inputHandlerState.mouseState.mouseDown = true;
+    inputHandlerState.mouseState.mouseUp = false;
 });
 window.addEventListener('mouseup', function (e) {
     inputHandlerState.mouseState.mouseDown = false;
+    inputHandlerState.mouseState.mouseUp = true;
 });
 window.addEventListener('keydown', function (e) {
     // console.log(e.key);
     if (e.key == 'w') {
         inputHandlerState.north = true;
+        // particleEmitter.initializedParticles = particleEmitter.init();
     }
     if (e.key == 'a') {
         inputHandlerState.west = true;
@@ -113,12 +116,6 @@ function gameLoop(timeStamp) {
 
     // Calculate the number of seconds passed since the last frame
 
-    // gTime.deltaTime = (timeStamp - oldTimeStamp);
-    // gTime.currentTime = timeStamp;
-    // gTime.oldTime = timeStamp;
-
-
-
     deltaTime = (timeStamp - oldTimeStamp);
     secondsPassed = (timeStamp - oldTimeStamp) / 1000;
     oldTimeStamp = timeStamp;
@@ -152,49 +149,11 @@ function draw(context) {
     }
 
     particleEmitter.draw(context);
+    
+    
     context.beginPath();
     context.font = '30px calibri';
     context.fillStyle = 'white'
     context.fillText(`FPS: ${Math.floor(fps)}`, 10, 30);
     context.closePath();
-}
-
-
-
-function Button(width, height, position, color) {
-    this.width = width;
-    this.height = height;
-    this.position = position;
-    this.color = color;
-    this.visible = true;
-    this.text = '';
-    this.textColor = 'black';
-    this.clicked = false;
-    this.checkClick = function() {
-        if(inputHandlerState.mouseState.x >= this.position.x 
-            && inputHandlerState.mouseState.x <= this.position.x + this.width
-            && inputHandlerState.mouseState.y >= this.position.y
-            && inputHandlerState.mouseState.x >= this.position.y + this.height) 
-                {
-                    if(inputHandlerState.mouseState.mouseDown) {
-                        this.doClick();
-                        // console.log('inbounds');
-                    }
-                }
-    }
-    this.doClick = function(){};
-    this.update = function (deltaTime) {
-        this.checkClick();
-    }
-    
-    this.draw = function (context) {
-        if(this.visible) {
-            //draw me
-            context.fillStyle = `${this.color}`;
-            context.fillRect(this.position.x, this.position.y, this.width, this.height)
-            context.fillStyle = this.textColor;
-            
-            context.fillText(this.text, this.position.x, this.position.y + 25);
-        }
-    }
 }

@@ -1,29 +1,43 @@
 class ParticleEmitter extends GameObject {
     constructor(position) {
         super(position);
-        this.maxParticles = 100;
+        this.maxParticles = 1000;
+        // this.particles = this.init();
         this.particles = [];
-        this.done = false;
-        this.spawnRate = 100; //spawn rate in milliseconds
+        this.initializedParticles = this.init();
+        
+        this.spawnRate = 1; //spawn rate in seconds
         this.startTime = performance.now();
         this.newTime = 0;
         this.elapsedTime = 0;
+        this.currentIndex = 0;
+        this.state = {
+            firing: false,
+            done: false
+        }
     }
 
-    init() {
+    init(particleType) {
         //preload particle buffer
+        let particleBuffer = [];
+        for (let i = 0; i < this.maxParticles; i++) {
+            let newParticle = new GravityParticle(new Vector(this.position.x, this.position.y), this.randomVector(0.1));
+            newParticle.maxLife = (Math.random() * 2);
+            particleBuffer.push(newParticle);
+        }
+        return particleBuffer;
     }
 
     randomVector(variance) {
         let x = 0;
         let y = 0;
-        if(Math.random() < 0.5) {
+        if (Math.random() < 0.5) {
             x = -(Math.random() * variance);
         } else {
             x = (Math.random() * variance);
         }
 
-        if(Math.random() < 0.5) {
+        if (Math.random() < 0.5) {
             y = -(Math.random() * variance);
         } else {
             y = (Math.random() * variance);
@@ -31,92 +45,73 @@ class ParticleEmitter extends GameObject {
         return new Vector(x, y);
     }
 
-    emit() {
-        //spawnRate in seconds
-        //emit one particle per second
-        this.newTime = performance.now();
-        if(this.newTime - this.startTime >= this.spawnRate) {
-            if(this.particles.length < this.maxParticles) {
-                let newParticle = new Particle(new Vector(this.position.x, this.position.y), this.randomVector(2.4));
-                
-                    //make it yellow
-                    let colorTemp = Math.random() * 255;
-                    // newParticle.color.red = colorTemp;
-                    newParticle.color.green = colorTemp;
-                
-                this.particles.push(newParticle);
-                // console.log(this.particles.length);
-            } else {
-                // console.log('done loading particles');
-            }
-            this.startTime = this.newTime;
-        }
-    }
-
     update(deltaTime) {
-        // console.log(this.position);
         let self = this;
-        this.elapsedTime += deltaTime / 1000;
-        this.emit();
-        for(let i = 0; i > this.particles.length; i++) {
+
+        if(this.state.firing) {
+            this.elapsedTime += deltaTime / 1000; // divide by 1000 to get milliseconds
+        
+            //emit over time
+            if(this.spawnRate > 0) {
+                //filter out dead particles
+                let filtered = this.particles.filter(function (particle) {
+                    return particle.life > 0
+                });
+                this.particles = filtered; 
+                if(this.particles.length === 0 && this.state.done == false) {
+                    this.particles.push(new GravityParticle(new Vector(this.position.x, this.position.y), this.randomVector(0.01)));
+                }
+                if(this.elapsedTime >= this.spawnRate && this.state.done == false) {
+                    this.particles.push(new GravityParticle(new Vector(this.position.x, this.position.y), this.randomVector(0.01)));
+                
+                }
             
-        }
-        if(this.particles.length > 0) {
-            this.particles.forEach(function(particle, i) {
-                // particle.life -= 1;
-                //simulate each particle here
-                let x = 0;
-                let y = 0;
-                let variance = 0.4;
-                if(Math.random() < 0.5) {
-                    x = -(Math.random() * variance);
-                } else {
-                    x = (Math.random() * variance);
+                this.particles.forEach(function (particle, i) {
+                    particle.update(deltaTime, self.elapsedTime);
+                });
+            }
+            
+            
+    
+    
+            //burst
+            if(this.spawnRate === -1) {
+                
+                if (this.initializedParticles.length > 0) {
+                    this.initializedParticles.forEach(function (particle, i) {
+                        particle.update(deltaTime, self.elapsedTime);
+                    });
+                    let filtered = this.initializedParticles.filter(function (particle) {
+                        return particle.life >= 0
+                    });
+                    this.initializedParticles = filtered;            
                 }
-
-                if(Math.random() < 0.5) {
-                    y = -(Math.random() * variance);
-                } else {
-                    y = (Math.random() * variance);
-                }
-                particle.position.x += x * deltaTime;
-                particle.position.y += y * deltaTime;
-
-
-                particle.color.red -= 1;
-                particle.color.green -= 1;
-
-                if(self.elapsedTime >= 1) {
-                    particle.life -= 1;
-                    
-                }
-               
-               if(particle.life <= 0) {
-                //    particle.visible = false;
-                    // particleEmitter.particles.splice(i);
-                    particleEmitter.particles.shift();
-               }
-
-            });
-            if(self.elapsedTime >= 1) {
-                self.elapsedTime = 0;
+            }
+            
+            //reset spawn timer
+            if (this.elapsedTime >= this.spawnRate) {
+                this.elapsedTime = 0;
+            }
+            // console.log(this.particles.length);
+            if(this.particles.length <= 0 && this.state.firing == true) {
+                this.state.firing = false;
+                // console.log('when in');
             }
         }
         
     }
 
     draw(context) {
-        console.log(this.particles);
-        this.particles.forEach(function(particle) {
-            
-            if(particle.life > 0) {
-                context.beginPath();
-                context.fillStyle = `rgba(${particle.color.red},${particle.color.green},${particle.color.blue},${particle.color.alpha})`;
-                context.arc(particle.position.x, particle.position.y, 5, 0, 2 * Math.PI);
-                context.fill();
-                context.closePath();
-            }
-            
-        });
+        if(this.spawnRate === -1) {
+            this.initializedParticles.forEach(function (particle) {
+                particle.draw(context);
+            });
+        } else {
+            this.particles.forEach(function (particle) {
+                particle.draw(context);
+            });
+        }
+        
+        
     }
 }
