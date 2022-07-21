@@ -13,7 +13,7 @@ function Player() {
     this.rotation = -1;
     this.minerPEmitter = new ParticleEmitter(new Vector(600, 600));
     this.minerPEmitter.init();
-    this.minerPEmitter.spawnRate = 0.1;
+    this.minerPEmitter.spawnRate = 0.01;
 
 }
 
@@ -27,7 +27,7 @@ Player.prototype.fire = function () {
 }
 
 Player.prototype.update = function (deltaTime) {
-   
+
     this.minerPEmitter.position.x = inputHandlerState.mouseState.x;
     this.minerPEmitter.position.y = inputHandlerState.mouseState.y;
     if (inputHandlerState.north) {
