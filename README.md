@@ -1,0 +1,3 @@
+# Asteroids
+Fun project I was working on. I was trying to make an asteroid game where you fly around on a space ship mining asteroids and obtaining upgrades for the mining laser/ship.
+I got caught up creating a particle system for the lazer...
